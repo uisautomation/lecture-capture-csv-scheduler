@@ -17,6 +17,7 @@ Environment Variables:
 
     OCUSER                          Username of opencast user for event scheduling (default: admin)
     OCPASSWORD                      Password for opencast user for event scheduling (no default)
+    OCURL                           URL for the opencast instance
 
 """  # noqa:E501
 
@@ -39,13 +40,16 @@ inputfile = 'lecture-schedule.csv'
 url = os.environ.get('OCURL', 'https://admin.lecturecapture.uis.cam.ac.uk')
 user = os.environ.get('OCUSER', "admin")
 password = os.environ.get("OCPASSWORD", 'password')
-fieldnames = ("location",
+fieldnames = ["location",
               "title",
               "series",
               "startTime",
               "stopTime",
               "workflow",
-              "courseDescription")
+              "courseDescription",
+              "vleUri",
+              "sequenceUri",
+              "sequenceIndex"]
 
 
 def oc_create_event(m):
@@ -58,40 +62,35 @@ def oc_create_event(m):
     except requests.exceptions.RequestException as e:
         logging.error(e)
         sys.exit(1)
-    logging.info('status: ' + str(request.status_code))
+    logging.info("status: %s" % str(request.status_code))
     logging.info(request.text)
     return request
 
 
-def oc_acl(row):
-    """Create opencast acl for an event"""
-    acl = []
-    keys = ["allow", "action", "role"]
-    write = [True, "write", "ROLE_ADMIN"]
-    read = [True, "read", "ROLE_USER"]
-    acl.append(dict(zip(keys, write)))
-    acl.append(dict(zip(keys, read)))
-    return acl
+def oc_acl():
+    return [
+        {'role': 'ROLE_ADMIN', 'action': 'write', 'allow': True},
+        {'role': 'ROLE_USER', 'action': 'read', 'allow': True},
+    ]
 
 
 def oc_metadata(row):
     """Create opencast metadata for an event"""
     t = datetime.datetime.strptime(row["startTime"], "%Y-%m-%dT%H:%M:%SZ")
-    meta = []
-    innerdict = {}
-    innerdict["fields"] = []
-    innerdict["flavor"] = "dublincore/episode"
-    keys = ["id", "value"]
-    title = ["title", row["title"]]
-    description = ["description", row["courseDescription"]]
-    startDate = ["startDate", t.strftime("%Y-%m-%d")]
-    startTime = ["startTime", t.strftime("%H:%M:%SZ")]
-    innerdict["fields"].append(dict(zip(keys, title)))
-    innerdict["fields"].append(dict(zip(keys, description)))
-    innerdict["fields"].append(dict(zip(keys, startDate)))
-    innerdict["fields"].append(dict(zip(keys, startTime)))
-    meta.append(innerdict)
-    return meta
+    def _make_field(id_, value):
+        return {'id': id_, 'value': value}
+
+    return [
+        {
+            'flavor': 'dublincore/episode',
+            'fields': [
+                _make_field('title', row['title']),
+                _make_field('description', row['courseDescription']),
+                _make_field('startDate', t.strftime("%Y-%m-%d")),
+                _make_field('startTime', t.strftime("%H:%M:%SZ")),
+            ],
+        }
+    ]
 
 
 def oc_sched(row):
@@ -117,20 +116,20 @@ def oc_process(row):
 def oc_lecture_sched(inputfile):
     """Read in csv file row by row, assemble multipart form fields and create events"""
     with open(inputfile) as csv_file:
-        csv_reader = csv.DictReader(csv_file, fieldnames, delimiter=',')
-        logging.info('Loaded file: ' + inputfile)
-        line_count = 0
+        header = next(csv.reader(csv_file))
+        if header[:len(fieldnames)] != fieldnames:
+            logging.error("Bad header in csv file: %s" %  inputfile )
+            logging.error(header)
+            sys.exit(1)
+        csv_reader = csv.DictReader(csv_file, fieldnames)
+        logging.info("Loaded file: %s" % inputfile)
         for row in csv_reader:
-            # skip the first line as this will be column headings
-            if line_count > 0:
-                logging.info("procesing row :" + str(line_count))
-                m = MultipartEncoder(
-                    fields={'acl': json.dumps(oc_acl(row)),
-                            'metadata': json.dumps(oc_metadata(row)),
-                            'scheduling': json.dumps(oc_sched(row)),
-                            'processing': json.dumps(oc_process(row))})
-                oc_create_event(m)
-            line_count += 1
+            m = MultipartEncoder(
+                fields={'acl': json.dumps(oc_acl()),
+                        'metadata': json.dumps(oc_metadata(row)),
+                        'scheduling': json.dumps(oc_sched(row)),
+                        'processing': json.dumps(oc_process(row))})
+            oc_create_event(m)
 
 if __name__ == "__main__":
 
