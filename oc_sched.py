@@ -10,7 +10,7 @@ Options:
 
     -h, --help                      Show a brief usage summary.
 
-    -i, --input=PATH               Path (including filename) of the csv file to ingest
+    -i, --input=PATH                Path (including filename) of the csv file to ingest
                                     [default: ./lecture-schedule.csv]
 
 Environment Variables:
