@@ -29,8 +29,10 @@ import requests
 import datetime
 import logging
 import docopt
+import pytz
 from requests.auth import HTTPBasicAuth
 from requests_toolbelt import MultipartEncoder
+from dateutil.parser import parse
 
 logging.basicConfig(filename='lecture-schedule.log',
                     level=logging.DEBUG,
@@ -76,7 +78,7 @@ def oc_acl():
 
 def oc_metadata(row):
     """Create opencast metadata for an event"""
-    t = datetime.datetime.strptime(row["startTime"], "%Y-%m-%dT%H:%M:%SZ")
+    t = parse(row['startTime']).astimezone(pytz.utc)
     def _make_field(id_, value):
         return {'id': id_, 'value': value}
 
