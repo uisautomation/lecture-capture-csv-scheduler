@@ -125,7 +125,7 @@ def schedule_events(input_fobj, base_url, user, password):
             response.raise_for_status()
         except Exception as e:
             logging.error('Error posting event')
-            logging.error('Row was: %s', ','.join(row))
+            logging.error('Row was: %r', row)
             logging.exception(e)
 
 
@@ -158,10 +158,9 @@ def oc_metadata(row):
 
 def oc_sched(row):
     """Create opencast schedule for an event"""
-    duration = _parse_date(row["stopTime"]) - _parse_date(row["startTime"])
     sched = {"agent_id": row["location"],
              "start": row["startTime"],
-             "duration": 1000 * int(duration.total_seconds()),
+             "end": row["stopTime"],
              "inputs": ["default"]}
     return sched
 
