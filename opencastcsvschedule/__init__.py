@@ -125,7 +125,7 @@ def schedule_events(input_fobj, base_url, user, password):
             response.raise_for_status()
         except Exception as e:
             logging.error('Error posting event')
-            logging.error('Row was: %s', ','.join(row))
+            logging.error('Row was: %r', row)
             logging.exception(e)
 
 
