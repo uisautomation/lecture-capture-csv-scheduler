@@ -79,6 +79,7 @@ def oc_acl():
 def oc_metadata(row):
     """Create opencast metadata for an event"""
     t = parse(row['startTime']).astimezone(pytz.utc)
+
     def _make_field(id_, value):
         return {'id': id_, 'value': value}
 
