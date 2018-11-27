@@ -26,7 +26,6 @@ import csv
 import sys
 import json
 import requests
-import datetime
 import logging
 import docopt
 import pytz
