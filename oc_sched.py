@@ -120,7 +120,7 @@ def oc_lecture_sched(inputfile):
     with open(inputfile) as csv_file:
         header = next(csv.reader(csv_file))
         if header[:len(fieldnames)] != fieldnames:
-            logging.error("Bad header in csv file: %s" %  inputfile )
+            logging.error("Bad header in csv file: %s", inputfile)
             logging.error(header)
             sys.exit(1)
         csv_reader = csv.DictReader(csv_file, fieldnames)
