@@ -53,6 +53,14 @@ fieldnames = ["location",
               "sequenceIndex"]
 
 
+def _parse_date(s):
+    """
+    Parse date from a date string as defined in the CSV.
+
+    """
+    return parse(s).astimezone(pytz.utc)
+
+
 def oc_create_event(m):
     """opencast request for event creation"""
     event_url = url + '/api/events'
@@ -77,7 +85,7 @@ def oc_acl():
 
 def oc_metadata(row):
     """Create opencast metadata for an event"""
-    t = parse(row['startTime']).astimezone(pytz.utc)
+    t = _parse_date(row['startTime'])
 
     def _make_field(id_, value):
         return {'id': id_, 'value': value}
@@ -97,9 +105,10 @@ def oc_metadata(row):
 
 def oc_sched(row):
     """Create opencast schedule for an event"""
+    duration = _parse_date(row["stopTime"]) - _parse_date(row["startTime"])
     sched = {"agent_id": row["location"],
              "start": row["startTime"],
-             "end": row["stopTime"],
+             "duration": 1000 * int(duration.total_seconds()),
              "inputs": ["default"]}
     return sched
 
