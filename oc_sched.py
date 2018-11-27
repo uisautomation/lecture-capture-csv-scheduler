@@ -133,8 +133,8 @@ def oc_lecture_sched(inputfile):
                         'processing': json.dumps(oc_process(row))})
             oc_create_event(m)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     opts = docopt.docopt(__doc__, options_first=True)
     if os.environ.get("OCPASSWORD") is None:
         print("No opencast password defined - please set OCPASSWORD environment variable")
