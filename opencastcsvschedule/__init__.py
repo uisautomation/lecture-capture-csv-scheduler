@@ -158,10 +158,12 @@ def oc_metadata(row):
 
 def oc_sched(row):
     """Create opencast schedule for an event"""
-    sched = {"agent_id": row["location"],
-             "start": row["startTime"],
-             "end": row["stopTime"],
-             "inputs": ["default"]}
+    sched = {
+        "agent_id": row["location"],
+        "start": row["startTime"],
+        "end": row["stopTime"],
+        "inputs": ["camera", "screen", "AudioSource"],
+    }
     return sched
 
 
