@@ -1,3 +1,5 @@
+Moved to https://gitlab.developers.cam.ac.uk/uis/devops/lecture-capture/lecture-capture-csv-scheduler
+
 # Schedule Opencast Events from CSV
 
 This repository contains a small utility to schedule Opencast events from an
